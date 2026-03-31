@@ -3,8 +3,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function StudentList() {
-  const [students, setStudents] = useState([]);
-  const [message, setMessage]   = useState('');
+  const [students,   setStudents]   = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [message,    setMessage]    = useState('');
   const navigate = useNavigate();
 
   useEffect(() => { fetchStudents(); }, []);
@@ -18,20 +19,51 @@ function StudentList() {
   const deleteStudent = (id) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       axios.delete(`http://localhost:5000/api/students/${id}`)
-        .then(() => { setMessage('Student deleted!'); fetchStudents(); })
+        .then(() => { setMessage('Student deleted successfully!'); fetchStudents(); })
         .catch((err) => console.log('Error:', err));
     }
   };
 
+  const filteredStudents = students.filter((s) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      s.name.toLowerCase().includes(term) ||
+      s.rollNumber.toLowerCase().includes(term) ||
+      s.course.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="card">
-      <h2>All Students</h2>
+      <div className="list-header">
+        <h2>All Students</h2>
+        <div className="search-box">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search by name, roll number or course..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          {searchTerm && <button className="clear-search" onClick={() => setSearchTerm('')}>✕</button>}
+        </div>
+      </div>
+
       {message && <p className="success-msg">{message}</p>}
-      {students.length === 0 ? <p>No students found. Please add a student.</p> : (
+      <p className="student-count">Total: <strong>{filteredStudents.length}</strong> student(s){searchTerm && ` found for "${searchTerm}"`}</p>
+
+      {students.length === 0 ? (
+        <p>No students found. Please add a student.</p>
+      ) : filteredStudents.length === 0 ? (
+        <p className="error-msg">No students found matching your search.</p>
+      ) : (
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Roll Number</th><th>Email</th><th>Course</th><th>Age</th><th>Actions</th></tr></thead>
+          <thead>
+            <tr><th>#</th><th>Name</th><th>Roll Number</th><th>Email</th><th>Course</th><th>Age</th><th>Actions</th></tr>
+          </thead>
           <tbody>
-            {students.map((s, i) => (
+            {filteredStudents.map((s, i) => (
               <tr key={s._id}>
                 <td>{i + 1}</td><td>{s.name}</td><td>{s.rollNumber}</td>
                 <td>{s.email}</td><td>{s.course}</td><td>{s.age}</td>
@@ -47,4 +79,5 @@ function StudentList() {
     </div>
   );
 }
+
 export default StudentList;
