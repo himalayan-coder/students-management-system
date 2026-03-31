@@ -1,29 +1,22 @@
-// Student.js - MongoDB model with extended profile fields
-
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-  // Basic Info
-  name:        { type: String, required: true },
-  rollNumber:  { type: String, required: true, unique: true },
-  email:       { type: String, required: true },
-  course:      { type: String, required: true },
+  name:          { type: String, required: true },
+  rollNumber:    { type: String, required: true, unique: true },
+  email:         { type: String, required: true },
+  course:        { type: String, required: true },
 
-  // Extended Profile (Level 2)
-  dateOfBirth: { type: String, required: true },   // stored as YYYY-MM-DD
-  gender:      { type: String, enum: ['Male', 'Female', 'Other'], required: true },
-  phone:       { type: String, required: true },
-  address:     { type: String, default: '' },
-
-  // Guardian Info
+  // Level 2 fields - all optional for backward compatibility
+  dateOfBirth:   { type: String, default: '' },
+  gender:        { type: String, default: '' },   // ← removed enum restriction
+  phone:         { type: String, default: '' },
+  address:       { type: String, default: '' },
   guardianName:  { type: String, default: '' },
   guardianPhone: { type: String, default: '' },
+  photo:         { type: String, default: '' },
+  age:           { type: Number, default: 0 },    // ← kept for old data
 
-  // Photo
-  photo:       { type: String, default: '' },       // filename of uploaded photo
-
-  // Timestamps
-  createdAt:   { type: Date, default: Date.now }
+  createdAt:     { type: Date, default: Date.now }
 });
 
 const Student = mongoose.model('Student', studentSchema);
