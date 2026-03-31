@@ -1,22 +1,20 @@
-// StudentList.js - With Search, Filter by Course, Age Range, Sort Columns, Pagination
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const ITEMS_PER_PAGE = 5; // Students per page
+const ITEMS_PER_PAGE = 5;
 
 function StudentList() {
-  const [students,    setStudents]    = useState([]);
-  const [searchTerm,  setSearchTerm]  = useState('');
-  const [filterCourse,setFilterCourse]= useState('All');
-  const [minAge,      setMinAge]      = useState('');
-  const [maxAge,      setMaxAge]      = useState('');
-  const [sortField,   setSortField]   = useState('name');
-  const [sortOrder,   setSortOrder]   = useState('asc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [message,     setMessage]     = useState('');
-
+  const [students,     setStudents]     = useState([]);
+  const [searchTerm,   setSearchTerm]   = useState('');
+  const [filterCourse, setFilterCourse] = useState('All');
+  const [filterGender, setFilterGender] = useState('All');
+  const [minAge,       setMinAge]       = useState('');
+  const [maxAge,       setMaxAge]       = useState('');
+  const [sortField,    setSortField]    = useState('name');
+  const [sortOrder,    setSortOrder]    = useState('asc');
+  const [currentPage,  setCurrentPage]  = useState(1);
+  const [message,      setMessage]      = useState('');
   const navigate = useNavigate();
 
   useEffect(() => { fetchStudents(); }, []);
@@ -35,130 +33,92 @@ function StudentList() {
     }
   };
 
-  // Get unique courses for dropdown
+  // Calculate age from date of birth
+  const calcAge = (dob) => {
+    if (!dob) return '—';
+    const diff = Date.now() - new Date(dob).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+  };
+
   const uniqueCourses = ['All', ...new Set(students.map((s) => s.course))];
 
-  // Handle column sort toggle
   const handleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
+    setSortField(field);
+    setSortOrder(sortField === field && sortOrder === 'asc' ? 'desc' : 'asc');
     setCurrentPage(1);
   };
+  const arrow = (f) => sortField === f ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : ' ↕';
 
-  // Sort arrow indicator
-  const sortArrow = (field) => {
-    if (sortField !== field) return ' ↕';
-    return sortOrder === 'asc' ? ' ↑' : ' ↓';
-  };
-
-  // Apply Search + Filter + Age Range
   const filtered = students.filter((s) => {
     const term = searchTerm.toLowerCase();
-    const matchSearch =
-      s.name.toLowerCase().includes(term) ||
-      s.rollNumber.toLowerCase().includes(term) ||
-      s.course.toLowerCase().includes(term);
-
-    const matchCourse = filterCourse === 'All' || s.course === filterCourse;
-
-    const matchAge =
-      (minAge === '' || s.age >= parseInt(minAge)) &&
-      (maxAge === '' || s.age <= parseInt(maxAge));
-
-    return matchSearch && matchCourse && matchAge;
+    const age  = calcAge(s.dateOfBirth);
+    return (
+      (s.name.toLowerCase().includes(term) || s.rollNumber.toLowerCase().includes(term) || s.course.toLowerCase().includes(term)) &&
+      (filterCourse === 'All' || s.course === filterCourse) &&
+      (filterGender === 'All' || s.gender === filterGender) &&
+      (minAge === '' || age >= parseInt(minAge)) &&
+      (maxAge === '' || age <= parseInt(maxAge))
+    );
   });
 
-  // Apply Sort
   const sorted = [...filtered].sort((a, b) => {
-    let valA = a[sortField];
-    let valB = b[sortField];
-
-    if (typeof valA === 'string') valA = valA.toLowerCase();
-    if (typeof valB === 'string') valB = valB.toLowerCase();
-
-    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-    if (valA > valB) return sortOrder === 'asc' ?  1 : -1;
+    let vA = sortField === 'age' ? calcAge(a.dateOfBirth) : (a[sortField] || '');
+    let vB = sortField === 'age' ? calcAge(b.dateOfBirth) : (b[sortField] || '');
+    if (typeof vA === 'string') vA = vA.toLowerCase();
+    if (typeof vB === 'string') vB = vB.toLowerCase();
+    if (vA < vB) return sortOrder === 'asc' ? -1 : 1;
+    if (vA > vB) return sortOrder === 'asc' ?  1 : -1;
     return 0;
   });
 
-  // Apply Pagination
-  const totalPages  = Math.ceil(sorted.length / ITEMS_PER_PAGE);
-  const startIndex  = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginated   = sorted.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginated  = sorted.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  // Reset page when filters change
-  const handleSearchChange = (e) => { setSearchTerm(e.target.value);   setCurrentPage(1); };
-  const handleCourseChange = (e) => { setFilterCourse(e.target.value); setCurrentPage(1); };
-  const handleMinAge       = (e) => { setMinAge(e.target.value);       setCurrentPage(1); };
-  const handleMaxAge       = (e) => { setMaxAge(e.target.value);       setCurrentPage(1); };
-
-  // Reset all filters
   const resetFilters = () => {
-    setSearchTerm('');
-    setFilterCourse('All');
-    setMinAge('');
-    setMaxAge('');
-    setSortField('name');
-    setSortOrder('asc');
-    setCurrentPage(1);
+    setSearchTerm(''); setFilterCourse('All'); setFilterGender('All');
+    setMinAge(''); setMaxAge(''); setSortField('name'); setSortOrder('asc'); setCurrentPage(1);
   };
 
   return (
     <div className="card">
-
-      {/* ===== HEADER ===== */}
+      {/* Header + Search */}
       <div className="list-header">
         <h2>All Students</h2>
-        {/* Search Box */}
         <div className="search-box">
           <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search by name, roll number or course..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="search-input"
-          />
+          <input type="text" placeholder="Search by name, roll number or course..." value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="search-input" />
           {searchTerm && <button className="clear-search" onClick={() => { setSearchTerm(''); setCurrentPage(1); }}>✕</button>}
         </div>
       </div>
 
-      {/* ===== FILTER BAR ===== */}
+      {/* Filter Bar */}
       <div className="filter-bar">
-
-        {/* Filter by Course */}
         <div className="filter-group">
           <label>📚 Course:</label>
-          <select value={filterCourse} onChange={handleCourseChange} className="filter-select">
-            {uniqueCourses.map((c) => <option key={c} value={c}>{c}</option>)}
+          <select value={filterCourse} onChange={(e) => { setFilterCourse(e.target.value); setCurrentPage(1); }} className="filter-select">
+            {uniqueCourses.map((c) => <option key={c}>{c}</option>)}
           </select>
         </div>
-
-        {/* Filter by Age Range */}
         <div className="filter-group">
-          <label>🎂 Age Range:</label>
-          <input type="number" placeholder="Min" value={minAge} onChange={handleMinAge} className="age-input" min="1" />
-          <span style={{ margin: '0 5px', color: '#777' }}>–</span>
-          <input type="number" placeholder="Max" value={maxAge} onChange={handleMaxAge} className="age-input" min="1" />
+          <label>⚧ Gender:</label>
+          <select value={filterGender} onChange={(e) => { setFilterGender(e.target.value); setCurrentPage(1); }} className="filter-select">
+            {['All','Male','Female','Other'].map((g) => <option key={g}>{g}</option>)}
+          </select>
         </div>
-
-        {/* Reset Button */}
+        <div className="filter-group">
+          <label>🎂 Age:</label>
+          <input type="number" placeholder="Min" value={minAge} onChange={(e) => { setMinAge(e.target.value); setCurrentPage(1); }} className="age-input" />
+          <span style={{ margin: '0 5px', color: '#777' }}>–</span>
+          <input type="number" placeholder="Max" value={maxAge} onChange={(e) => { setMaxAge(e.target.value); setCurrentPage(1); }} className="age-input" />
+        </div>
         <button className="btn-reset" onClick={resetFilters}>🔄 Reset</button>
       </div>
 
-      {/* ===== MESSAGES & COUNT ===== */}
       {message && <p className="success-msg">{message}</p>}
-      <p className="student-count">
-        Showing <strong>{paginated.length}</strong> of <strong>{sorted.length}</strong> student(s)
-        {filterCourse !== 'All' && ` in "${filterCourse}"`}
-        {searchTerm && ` matching "${searchTerm}"`}
-      </p>
+      <p className="student-count">Showing <strong>{paginated.length}</strong> of <strong>{sorted.length}</strong> student(s)</p>
 
-      {/* ===== TABLE ===== */}
       {students.length === 0 ? (
         <p>No students found. Please add a student.</p>
       ) : sorted.length === 0 ? (
@@ -169,11 +129,15 @@ function StudentList() {
             <thead>
               <tr>
                 <th>#</th>
-                <th className="sortable" onClick={() => handleSort('name')}>Name{sortArrow('name')}</th>
-                <th className="sortable" onClick={() => handleSort('rollNumber')}>Roll Number{sortArrow('rollNumber')}</th>
+                <th>Photo</th>
+                <th className="sortable" onClick={() => handleSort('name')}>Name{arrow('name')}</th>
+                <th className="sortable" onClick={() => handleSort('rollNumber')}>Roll No{arrow('rollNumber')}</th>
                 <th>Email</th>
-                <th className="sortable" onClick={() => handleSort('course')}>Course{sortArrow('course')}</th>
-                <th className="sortable" onClick={() => handleSort('age')}>Age{sortArrow('age')}</th>
+                <th className="sortable" onClick={() => handleSort('course')}>Course{arrow('course')}</th>
+                <th className="sortable" onClick={() => handleSort('gender')}>Gender{arrow('gender')}</th>
+                <th className="sortable" onClick={() => handleSort('age')}>Age{arrow('age')}</th>
+                <th>Phone</th>
+                <th>Guardian</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -181,11 +145,20 @@ function StudentList() {
               {paginated.map((s, i) => (
                 <tr key={s._id}>
                   <td>{startIndex + i + 1}</td>
-                  <td>{s.name}</td>
+                  <td>
+                    {s.photo
+                      ? <img src={`http://localhost:5000/uploads/${s.photo}`} alt={s.name} className="student-thumb" />
+                      : <div className="no-photo">N/A</div>
+                    }
+                  </td>
+                  <td><strong>{s.name}</strong></td>
                   <td>{s.rollNumber}</td>
                   <td>{s.email}</td>
                   <td><span className="course-badge">{s.course}</span></td>
-                  <td>{s.age}</td>
+                  <td><span className={`gender-badge gender-${(s.gender||'').toLowerCase()}`}>{s.gender || '—'}</span></td>
+                  <td>{calcAge(s.dateOfBirth)}</td>
+                  <td>{s.phone || '—'}</td>
+                  <td style={{ fontSize: '12px' }}>{s.guardianName || '—'}</td>
                   <td>
                     <button className="btn-edit"   onClick={() => navigate(`/edit/${s._id}`)}>Edit</button>
                     <button className="btn-delete" onClick={() => deleteStudent(s._id)}>Delete</button>
@@ -195,41 +168,16 @@ function StudentList() {
             </tbody>
           </table>
 
-          {/* ===== PAGINATION ===== */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="pagination">
-              <button
-                className="page-btn"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-              >« First</button>
-
-              <button
-                className="page-btn"
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-              >‹ Prev</button>
-
-              {/* Page number buttons */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  className={`page-btn ${currentPage === page ? 'active-page' : ''}`}
-                  onClick={() => setCurrentPage(page)}
-                >{page}</button>
+              <button className="page-btn" onClick={() => setCurrentPage(1)}             disabled={currentPage === 1}>« First</button>
+              <button className="page-btn" onClick={() => setCurrentPage((p) => p - 1)} disabled={currentPage === 1}>‹ Prev</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button key={p} className={`page-btn ${currentPage === p ? 'active-page' : ''}`} onClick={() => setCurrentPage(p)}>{p}</button>
               ))}
-
-              <button
-                className="page-btn"
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >Next ›</button>
-
-              <button
-                className="page-btn"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-              >Last »</button>
+              <button className="page-btn" onClick={() => setCurrentPage((p) => p + 1)} disabled={currentPage === totalPages}>Next ›</button>
+              <button className="page-btn" onClick={() => setCurrentPage(totalPages)}   disabled={currentPage === totalPages}>Last »</button>
             </div>
           )}
         </>

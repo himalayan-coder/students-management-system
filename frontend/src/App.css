@@ -83,3 +83,23 @@ th.sortable:hover { background-color: #3d5166; }
 .role-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 6px; text-transform: uppercase; }
 .role-admin   { background-color: #f39c12; color: white; }
 .role-teacher { background-color: #27ae60; color: white; }
+
+/* ========== FORM SECTIONS ========== */
+.form-section-title { font-weight: bold; color: #2c3e50; background-color: #ecf0f1; padding: 8px 12px; border-radius: 5px; margin: 20px 0 10px 0; font-size: 14px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+/* ========== PHOTO UPLOAD ========== */
+.photo-upload-area { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 10px; gap: 6px; }
+.photo-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 3px solid #2c3e50; }
+.photo-placeholder { width: 100px; height: 100px; border-radius: 50%; background-color: #ddd; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; border: 3px dashed #ccc; }
+
+/* ========== STUDENT TABLE PHOTO ========== */
+.student-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #2c3e50; }
+.no-photo { width: 40px; height: 40px; border-radius: 50%; background-color: #eee; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; }
+
+/* ========== GENDER BADGES ========== */
+.gender-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+.gender-male   { background-color: #d6eaf8; color: #2980b9; }
+.gender-female { background-color: #fce4ec; color: #c2185b; }
+.gender-other  { background-color: #f3e5f5; color: #7b1fa2; }
