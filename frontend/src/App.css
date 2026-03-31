@@ -78,3 +78,8 @@ th.sortable:hover { background-color: #3d5166; }
 .login-header p { color: #777; font-size: 14px; }
 .login-btn { width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; }
 .login-hint { text-align: center; color: #aaa; font-size: 12px; margin-top: 15px; }
+
+/* ========== ROLE BADGES ========== */
+.role-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 6px; text-transform: uppercase; }
+.role-admin   { background-color: #f39c12; color: white; }
+.role-teacher { background-color: #27ae60; color: white; }

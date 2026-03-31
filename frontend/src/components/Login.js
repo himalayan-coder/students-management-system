@@ -1,19 +1,34 @@
+// Login.js - Teacher Login with session timeout support
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in ms
+
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
+  const [error,    setError]    = useState('');
+
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
+    setError('');
+
     axios.post('http://localhost:5000/api/auth/login', { username, password })
       .then((response) => {
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('teacherName', response.data.name);
+        const { name, role, id } = response.data;
+
+        // Save to localStorage
+        localStorage.setItem('isLoggedIn',      'true');
+        localStorage.setItem('teacherName',     name);
+        localStorage.setItem('teacherUsername', username);
+        localStorage.setItem('teacherRole',     role);
+        localStorage.setItem('teacherId',       id);
+        localStorage.setItem('loginTime',       Date.now().toString());
+
         navigate('/');
       })
       .catch(() => {
@@ -29,7 +44,9 @@ function Login() {
           <h2>Student Management System</h2>
           <p>Teacher Login</p>
         </div>
+
         {error && <p className="error-msg">{error}</p>}
+
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <label>Username:</label>
@@ -41,6 +58,7 @@ function Login() {
           </div>
           <button type="submit" className="btn-primary login-btn">Login</button>
         </form>
+
         <p className="login-hint">Default: admin / admin123</p>
       </div>
     </div>
