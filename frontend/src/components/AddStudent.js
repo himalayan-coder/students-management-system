@@ -1,8 +1,7 @@
-// AddStudent.js - Extended form with photo, DOB, gender, phone, address, guardian
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import IDCard from './IDCard';
 
 function AddStudent() {
   const [formData, setFormData] = useState({
@@ -10,39 +9,47 @@ function AddStudent() {
     dateOfBirth: '', gender: '', phone: '', address: '',
     guardianName: '', guardianPhone: ''
   });
-  const [photo,   setPhoto]   = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [message, setMessage] = useState('');
-  const [error,   setError]   = useState('');
+  const [photo,      setPhoto]      = useState(null);
+  const [preview,    setPreview]    = useState(null);
+  const [photoError, setPhotoError] = useState('');
+  const [message,    setMessage]    = useState('');
+  const [error,      setError]      = useState('');
+  const [newStudent, setNewStudent] = useState(null); // for ID card
   const navigate = useNavigate();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handlePhoto = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPhoto(file);
-      setPreview(URL.createObjectURL(file));
-    }
+    if (file) { setPhoto(file); setPreview(URL.createObjectURL(file)); setPhotoError(''); }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setMessage(''); setError('');
 
-    // Use FormData to support file upload
+    // Photo is required
+    if (!photo) { setPhotoError('⚠️ Student photo is required!'); return; }
+
     const data = new FormData();
     Object.keys(formData).forEach((key) => data.append(key, formData[key]));
-    if (photo) data.append('photo', photo);
+    data.append('photo', photo);
 
     axios.post('http://localhost:5000/api/students', data, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-      .then(() => {
-        setMessage('Student added successfully!');
-        setTimeout(() => navigate('/'), 1500);
+      .then((res) => {
+        setMessage('✅ Student added successfully! ID Card is ready.');
+        setNewStudent(res.data); // show ID card
       })
-      .catch(() => setError('Error adding student. Roll number may already exist.'));
+      .catch((err) => {
+        const msg = err.response?.data?.message || '';
+        if (msg.includes('email') || msg.includes('E11000')) {
+          setError('❌ This email is already registered. Please use a different email.');
+        } else {
+          setError('❌ Error adding student. Roll number may already exist.');
+        }
+      });
   };
 
   return (
@@ -54,15 +61,16 @@ function AddStudent() {
 
       <form onSubmit={handleSubmit}>
 
-        {/* ── Photo Upload ── */}
-        <div className="form-section-title">📷 Student Photo</div>
+        {/* ── Photo Upload (REQUIRED) ── */}
+        <div className="form-section-title">📷 Student Photo <span style={{ color: 'red' }}>*</span></div>
         <div className="photo-upload-area">
           {preview
             ? <img src={preview} alt="Preview" className="photo-preview" />
             : <div className="photo-placeholder">No Photo</div>
           }
           <input type="file" accept="image/*" onChange={handlePhoto} style={{ marginTop: '10px' }} />
-          <small style={{ color: '#999' }}>Max size: 2MB | JPG, PNG, GIF</small>
+          {photoError && <p className="error-msg" style={{ marginTop: '5px' }}>{photoError}</p>}
+          <small style={{ color: '#999' }}>Required | Max 2MB | JPG, PNG, GIF</small>
         </div>
 
         {/* ── Basic Info ── */}
@@ -77,7 +85,7 @@ function AddStudent() {
             <input type="text" name="rollNumber" value={formData.rollNumber} onChange={handleChange} required placeholder="e.g. MCA2024001" />
           </div>
           <div className="form-group">
-            <label>Email: *</label>
+            <label>Email: * <small style={{ color: '#999' }}>(must be unique)</small></label>
             <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="e.g. prachi@gmail.com" />
           </div>
           <div className="form-group">
@@ -120,9 +128,17 @@ function AddStudent() {
           </div>
         </div>
 
-        <button type="submit" className="btn-primary">Add Student</button>
+        <button type="submit" className="btn-primary">Add Student & Generate ID Card</button>
         <button type="button" style={{ marginLeft: '10px', backgroundColor: '#95a5a6', color: 'white' }} onClick={() => navigate('/')}>Cancel</button>
       </form>
+
+      {/* ── Show ID Card after student added ── */}
+      {newStudent && (
+        <IDCard
+          student={newStudent}
+          onClose={() => { setNewStudent(null); navigate('/'); }}
+        />
+      )}
     </div>
   );
 }

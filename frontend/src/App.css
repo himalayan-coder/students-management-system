@@ -103,3 +103,22 @@ th.sortable:hover { background-color: #3d5166; }
 .gender-male   { background-color: #d6eaf8; color: #2980b9; }
 .gender-female { background-color: #fce4ec; color: #c2185b; }
 .gender-other  { background-color: #f3e5f5; color: #7b1fa2; }
+
+/* ========== ID CARD MODAL ========== */
+.id-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.id-modal-box { background: white; border-radius: 12px; padding: 25px; max-width: 420px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+
+/* ========== ID CARD DESIGN ========== */
+.id-card { width: 340px; border: 2px solid #2c3e50; border-radius: 10px; overflow: hidden; font-family: Arial, sans-serif; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.id-card-header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 10px 12px; text-align: center; }
+.id-school-name { font-size: 11px; font-weight: bold; letter-spacing: 0.5px; }
+.id-card-title  { font-size: 9px; opacity: 0.85; margin-top: 2px; letter-spacing: 1px; }
+.id-card-body   { display: flex; padding: 12px; gap: 12px; background: #fff; }
+.id-photo-section { flex-shrink: 0; }
+.id-photo       { width: 75px; height: 85px; object-fit: cover; border: 2px solid #2c3e50; border-radius: 5px; }
+.id-no-photo    { width: 75px; height: 85px; background: #eee; border: 2px solid #ccc; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; text-align: center; }
+.id-info-section { flex: 1; }
+.id-student-name { font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+.id-info-row    { font-size: 10px; color: #444; margin-bottom: 3px; display: flex; gap: 4px; }
+.id-label       { font-weight: bold; color: #2c3e50; min-width: 42px; }
+.id-card-footer { background: #2c3e50; color: white; padding: 6px 12px; font-size: 9px; display: flex; justify-content: space-between; }
