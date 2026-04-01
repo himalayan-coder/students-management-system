@@ -140,3 +140,7 @@ th.sortable:hover { background-color: #3d5166; }
 /* ========== FIX: Sort arrows always inline ========== */
 th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
 th.sortable:hover { background-color: #3d5166; }
+
+/* ========== FIELD VALIDATION ========== */
+.input-error       { border: 2px solid #e74c3c !important; background-color: #fdf2f2 !important; }
+.field-error-msg   { color: #e74c3c; font-size: 12px; margin-top: 4px; margin-bottom: 0; font-weight: bold; }
